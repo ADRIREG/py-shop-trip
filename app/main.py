@@ -1,13 +1,16 @@
+import os
 import json
 import datetime
 from app.car import Car
 from app.customer import Customer
 from app.shop import Shop
-from app.utils import calculate_distance
 
 
 def shop_trip() -> None:
-    with open("config.json", "r") as file:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(current_dir, "..", "config.json")
+
+    with open(config_path, "r") as file:
         data = json.load(file)
 
     fuel_price = data["FUEL_PRICE"]
@@ -30,45 +33,34 @@ def shop_trip() -> None:
         customers.append(cust)
 
     for customer in customers:
-        print(f"{customer.name} has {customer.money} dollars")
-
         trip_costs = {}
         for shop in shops:
             cost = customer.calculate_trip_cost(shop, fuel_price)
             trip_costs[shop] = cost
-            print(
-                f"{customer.name} "
-                f"shop_data trip to the {shop.name} costs {cost}")
 
         best_shop = min(trip_costs, key=trip_costs.get)
+        total_cost = trip_costs[best_shop]
 
-        if trip_costs[best_shop] <= customer.money:
-            print(f"{customer.name} rides to {best_shop.name}")
-
+        if total_cost <= customer.money:
             customer.location = best_shop.location
+            customer.money -= total_cost
 
             now = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             print(f"# Date: {now}")
             print(f"Thanks, {customer.name}, for your purchase!")
             print("You have bought:")
 
-            shopping_cost = best_shop.calculate_cost(customer.product_cart)
             for item, quantity in customer.product_cart.items():
                 price = best_shop.products[item]
-                print(f"{quantity} {item}shop_data "
-                      f"for {quantity * price} dollars")
+                print(f"{quantity} {item}s for {quantity * price} dollars")
 
-            print(f"Total cost is {shopping_cost} dollars")
-            print("See you again!")
-
-            customer.money -= trip_costs[best_shop]
+            print(f"Total cost is {total_cost} dollars")
             print(f"{customer.name} rides home")
             print(f"{customer.name} "
                   f"now has {round(customer.money, 2)} dollars")
         else:
-            print(
-                f"{customer.name} "
-                f"doesn't have enough money to make a purchase in any shop")
+            print(f"{customer.name} doesn't have enough money "
+                  f"to make a purchase in any shop")
 
 
 if __name__ == "__main__":
