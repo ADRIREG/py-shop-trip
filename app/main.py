@@ -1,4 +1,3 @@
-import os
 import json
 import datetime
 from pathlib import Path
@@ -16,13 +15,21 @@ def shop_trip() -> None:
 
     fuel_price = data["FUEL_PRICE"]
 
-    shops = [Shop(s["name"], s["location"], s["products"]) for s in data["shops"]]
+    shops = [Shop(shop_data["name"],
+                  shop_data["location"],
+                  shop_data["products"])
+             for shop_data in data["shops"]]
 
     customers = []
-    for c in data["customers"]:
-        car = Car(c["car"]["brand"], c["car"]["fuel_consumption"])
-        cust = Customer(c["name"], c["product_cart"], c["location"],
-                        c["money"], car)
+    for car_data in data["customers"]:
+        car = Car(
+            car_data["car"]["brand"],
+            car_data["car"]["fuel_consumption"])
+        cust = Customer(
+            car_data["name"],
+            car_data["product_cart"],
+            car_data["location"],
+            car_data["money"], car)
         customers.append(cust)
 
     for customer in customers:
@@ -32,7 +39,8 @@ def shop_trip() -> None:
         for shop in shops:
             cost = customer.calculate_trip_cost(shop, fuel_price)
             trip_costs[shop] = cost
-            print(f"{customer.name}'s trip to the {shop.name} costs {cost}")
+            print(f"{customer.name}'shop_data trip to the "
+                  f"{shop.name} costs {cost}")
 
         best_shop = min(trip_costs, key=trip_costs.get)
 
@@ -56,7 +64,9 @@ def shop_trip() -> None:
             print(f"Total cost is {shopping_cost} dollars")
             print("See you again!")
             print(f"{customer.name} rides home")
-            print(f"{customer.name} now has {round(customer.money, 2)} dollars")
+            print(
+                f"{customer.name} now has "
+                f"{round(customer.money, 2)} dollars")
         else:
             print(f"{customer.name} doesn't have enough money "
                   f"to make a purchase in any shop")
